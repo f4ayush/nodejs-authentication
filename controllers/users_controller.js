@@ -1,8 +1,7 @@
 const User = require('../models/user');
-const fs = require('fs');
-const path = require('path');
-const { monitorEventLoopDelay } = require('perf_hooks');
-
+const crypto = require('crypto');
+const passwordMailer = require("../mailers/password_mailer")
+const bcrypt = require("bcryptjs");
 // let's keep it same as before
 module.exports.profile = function(req, res){
     User.findById(req.params.id, function(err, user){
@@ -46,11 +45,13 @@ module.exports.create = function(req, res){
         return res.redirect('back');
     }
 
-    User.findOne({email: req.body.email}, function(err, user){
+    User.findOne({email: req.body.email}, async function(err, user){
         if(err){req.flash('error', err); return}
 
         if (!user){
-            User.create(req.body, function(err, user){
+            const {email, password, name} = req.body;
+            const hashedPassword = await bcrypt.hash(password, 12);
+            User.create({email, name, password:hashedPassword}, function(err, user){
                 if(err){req.flash('error', err); return}
 
                 return res.redirect('/users/sign-in');
@@ -99,8 +100,38 @@ module.exports.resetPassword= async function(req, res){
         console.log(error);
     }
     
+    req.flash('success', 'Password Changed!');
+    return res.render('home', {
+        title: "Auth | Home"
+    })
+}
 
-    return res.render('reset_password', {
-        title: "Auth | Reset Password"
+module.exports.forgetPassword = async function(req, res){
+    return res.render('forgot_password', {
+        title: "Forget password | Home"
+    })
+}
+
+module.exports.passwordLink = async function(req, res){
+    return res.render('home', {
+        title: "Auth | Home"
+    })
+}
+
+
+module.exports.passwordReset= async function(req, res){
+   
+    console.log(req.body.email);
+    try {
+        let newPassword = crypto.randomBytes(6).toString('hex');
+        await User.findOneAndUpdate(req.body.email, {password: newPassword});
+        passwordMailer.newPassword({newPassword, email:req.body.email});
+    } catch (error) {
+        console.log(error);
+    }
+    
+    req.flash('success', 'Password Changed!');
+    return res.render('home', {
+        title: "Auth | Home"
     })
 }
