@@ -127,7 +127,8 @@ module.exports.passwordReset= async function(req, res){
     try {
         let newPassword = crypto.randomBytes(6).toString('hex');
         const hashedPassword = await bcrypt.hash(newPassword, 12);
-        await User.findOneAndUpdate(req.body.email, {password: hashedPassword});
+        await User.findOneAndUpdate({email:req.body.email}, {password: hashedPassword});
+        
         await passwordMailer.newPassword({newPassword, email:req.body.email});
     } catch (error) {
         console.log(error);
