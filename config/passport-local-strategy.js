@@ -18,7 +18,8 @@ passport.use(new LocalStrategy({
                 return done(err);
             }
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
-            if (!user || isPasswordCorrect){
+            console.log(isPasswordCorrect, password, user.password)
+            if (!user || !isPasswordCorrect){
                 req.flash('error', 'Invalid Username/Password');
                 return done(null, false);
             }

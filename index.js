@@ -11,7 +11,7 @@ const passport = require('passport');
 const passportLocal = require('./config/passport-local-strategy');
 const passportJWT = require('./config/passport-jwt-strategy');
 const passportGoogle = require('./config/passport-google-oauth2-strategy');
-
+const path = require('path')
 const MongoStore = require('connect-mongo')(session);
 const flash = require('connect-flash');
 const customMware = require('./config/middleware');
@@ -20,7 +20,7 @@ app.use(express.urlencoded());
 
 app.use(cookieParser());
 
-app.use(express.static('./assets'));
+app.use(express.static(path.join(__dirname,'assets')));
 // make the uploads path available to the browser
 
 app.use(expressLayouts);
@@ -33,7 +33,7 @@ app.set('layout extractScripts', true);
 
 // set up the view engine
 app.set('view engine', 'ejs');
-app.set('views', './views');
+app.set('views', path.join(__dirname, 'views'));
 
 // mongo store is used to store the session cookie in the db
 app.use(session({

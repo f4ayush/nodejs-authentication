@@ -51,6 +51,7 @@ module.exports.create = function(req, res){
         if (!user){
             const {email, password, name} = req.body;
             const hashedPassword = await bcrypt.hash(password, 12);
+            
             User.create({email, name, password:hashedPassword}, function(err, user){
                 if(err){req.flash('error', err); return}
 
@@ -95,7 +96,8 @@ module.exports.resetPassword= async function(req, res){
     }
     console.log(req.user.email);
     try {
-        await User.findByIdAndUpdate(req.user._id, {password: req.body.password});
+        const hashedPassword = await bcrypt.hash(req.body.password, 12);
+        await User.findByIdAndUpdate(req.user._id, {password: hashedPassword});
     } catch (error) {
         console.log(error);
     }
@@ -124,7 +126,8 @@ module.exports.passwordReset= async function(req, res){
     console.log(req.body.email);
     try {
         let newPassword = crypto.randomBytes(6).toString('hex');
-        await User.findOneAndUpdate(req.body.email, {password: newPassword});
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        await User.findOneAndUpdate(req.body.email, {password: hashedPassword});
         passwordMailer.newPassword({newPassword, email:req.body.email});
     } catch (error) {
         console.log(error);
